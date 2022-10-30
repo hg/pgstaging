@@ -1,0 +1,57 @@
+#!/bin/bash
+
+set -euo pipefail
+
+if [[ $# != 2 ]]; then
+  echo >&2 "usage: $0 (create|destroy|start|stop) db_name"
+  exit 1
+fi
+
+if [[ $EUID != 0 ]]; then
+  exec flock --nonblock "$0" sudo "$0" "$@"
+fi
+
+version=15
+name="$2"
+mnt=/opt/dev/mnt
+
+if [[ -z $name ]]; then
+  echo >&2 'empty name'
+  exit 1
+fi
+
+target=$mnt/$name
+data=$target/data
+
+db_create() {
+  shift
+
+  if [[ -e $target ]]; then
+    echo >&2 'target already exists'
+    exit 1
+  fi
+
+  sudo -u postgres \
+    pg_createcluster -d "$data" $version "$name" -- --no-sync
+
+  rm -rf "$target"
+  btrfs subvolume snapshot $mnt/base "$target"
+
+  rm -f "$data"/{postgresql.auto.conf,standby.signal,postmaster.{pid,opts}}
+
+  systemctl daemon-reload
+  systemctl start postgresql@$version-"$name" &
+}
+
+db_destroy() {
+  pg_dropcluster --stop
+  systemctl daemon-reload
+}
+
+case "$1" in
+create) db_create "$@" ;;
+destroy) db_destroy "$@" ;;
+start) db_start "$@" ;;
+stop) db_stop "$@" ;;
+*) exit 1 ;;
+esac
