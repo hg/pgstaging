@@ -63,8 +63,8 @@
           <tr>
             <td><?= $cluster->cluster ?></td>
             <td><?= $cluster->port ?></td>
-            <td>sc</td>
-            <td>sc</td>
+            <td><?= $devDb ? 'sc' : '—' ?></td>
+            <td><?= $devDb ? 'sc' : '—' ?></td>
             <td>
                 <?php if ($devDb): ?>
                   <form action="modify.php" method="post">
