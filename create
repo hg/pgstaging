@@ -15,17 +15,16 @@ version=15
 name="$2"
 mnt=/opt/dev/mnt
 
-if [[ -z $name ]]; then
-  echo >&2 'empty name'
+if [[ -z $name ]] || [[ $name != dev_* ]]; then
+  echo >&2 'empty or invalid name'
   exit 1
 fi
 
 target=$mnt/$name
 data=$target/data
+service=postgresql@$version-$name
 
 db_create() {
-  shift
-
   if [[ -e $target ]]; then
     echo >&2 'target already exists'
     exit 1
@@ -34,24 +33,42 @@ db_create() {
   sudo -u postgres \
     pg_createcluster -d "$data" $version "$name" -- --no-sync
 
+  echo 'host all all 0.0.0.0/0 scram-sha-256' \
+    >>/etc/postgresql/$version/"$name"/pg_hba.conf
+
   rm -rf "$target"
   btrfs subvolume snapshot $mnt/base "$target"
 
   rm -f "$data"/{postgresql.auto.conf,standby.signal,postmaster.{pid,opts}}
 
+  pg_conftool $version "$name" set listen_addresses '*'
+  local port=$(pg_conftool $version "$name" get port | grep -oP '\d+')
+
   systemctl daemon-reload
-  systemctl start postgresql@$version-"$name" &
+  systemctl start "$service"
+
+  sudo -u postgres psql --port "$port" --command \
+    "ALTER USER sc PASSWORD 'sc'"
 }
 
 db_destroy() {
-  pg_dropcluster --stop
+  pg_dropcluster --stop $version "$name"
+  btrfs subvolume delete "$target"
   systemctl daemon-reload
 }
 
+db_start() {
+  systemctl start "$service"
+}
+
+db_stop() {
+  systemctl stop "$service"
+}
+
 case "$1" in
-create) db_create "$@" ;;
-destroy) db_destroy "$@" ;;
-start) db_start "$@" ;;
-stop) db_stop "$@" ;;
+create) db_create ;;
+destroy) db_destroy ;;
+start) db_start ;;
+stop) db_stop ;;
 *) exit 1 ;;
 esac

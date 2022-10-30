@@ -16,5 +16,5 @@ if (!$created) {
     bail('не удалось клонировать базу');
 }
 
-$_SESSION['action'] = 'created';
+$_SESSION['action'] = 'create';
 header('Location: /');
