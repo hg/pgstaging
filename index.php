@@ -98,11 +98,11 @@
             </td>
             <td>
                 <?php if ($devDb): ?>
-                  <form action="modify.php" method="post">
+                  <form action="modify.php" method="post" onsubmit="return deleteDb()">
                     <input type="hidden" name="action" value="destroy">
                     <input type="hidden" name="name" value="<?= $cluster->cluster ?>">
 
-                    <button class="button is-danger is-small" onclick="deleteDb()">
+                    <button class="button is-danger is-small">
                       Удалить
                     </button>
                   </form>
@@ -181,15 +181,10 @@ $ dbmate up
 <script>
   function addLoading() {
     event.target.classList.add("is-loading");
-    return true;
   }
 
   function deleteDb() {
-    const ok = confirm("Вы точно хотите удалить базу?");
-    if (ok) {
-      addLoading();
-    }
-    return ok;
+    return confirm("Вы точно хотите удалить базу?");
   }
 </script>
 
