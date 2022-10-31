@@ -37,7 +37,7 @@
 
     <h1 class="title">Список активных баз</h1>
 
-    <div class="content">
+    <div class="block">
       Не спамим запросами! Скрипты написаны наспех и работают синхронно — браузер может подвисать на минуту. Это
       ожидаемо.
     </div>
@@ -50,9 +50,9 @@
           <th>Порт</th>
           <th>Юзер</th>
           <th>Пароль</th>
+          <th>URL</th>
           <th>Запущен</th>
           <th>Изменено</th>
-          <th>Данные</th>
           <th>Действия</th>
         </tr>
         </thead>
@@ -65,6 +65,13 @@
             <td><?= $cluster->port ?></td>
             <td><?= $devDb ? 'sc' : '—' ?></td>
             <td><?= $devDb ? 'sc' : '—' ?></td>
+            <td>
+                <?php if ($devDb): ?>
+                  <code>postgres://sc:sc@<?= $_SERVER['HTTP_HOST'] ?>:<?= $cluster->port ?>/sc</code>
+                <?php else: ?>
+                  —
+                <?php endif ?>
+            </td>
             <td>
                 <?php if ($devDb): ?>
                   <form action="modify.php" method="post">
@@ -89,7 +96,6 @@
             <td>
                 <?= modified_at($cluster->pgdata) ?>
             </td>
-            <td><?= $cluster->pgdata ?></td>
             <td>
                 <?php if ($devDb): ?>
                   <form action="modify.php" method="post">
@@ -107,8 +113,17 @@
         </tbody>
       </table>
     </div>
-    
+
+    <div class="block">
+      Строку из <code>URL</code> можно использовать для прогона миграций:
+    </div>
+
+    <pre>$ export DATABASE_URL=строка_из_таблицы
+$ dbmate status
+$ dbmate up
+</pre>
   </div>
+
 </section>
 
 <section class="section">
