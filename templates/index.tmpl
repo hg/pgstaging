@@ -13,20 +13,18 @@
 <section class="section">
     <div class="container">
 
-        {{ if ne .Result "" }}
-            {{ if eq .Result "Error" }}
-                <div class="notification is-danger">
-                    Не удалось выполнить действие: {{ .Message }}
-                </div>
-            {{ else }}
-                <div class="notification is-primary">
-                    {{ if eq .Result "Queued" }}
-                        Задача поставлена в очередь. Обновите страницу через 10-20 секунд.
-                    {{ else if eq .Result "Finished" }}
-                        Задача выполнена успешно.
-                    {{ end }}
-                </div>
-            {{ end }}
+        {{ if eq .Status "error" }}
+            <div class="notification is-danger">
+                Не удалось выполнить действие: {{ .Message }}
+            </div>
+        {{ else if ne .Status "" }}
+            <div class="notification is-primary">
+                {{ if eq .Status "queued" }}
+                    Задача поставлена в очередь. Обновите страницу через 10-20 секунд.
+                {{ else if eq .Status "success" }}
+                    Задача выполнена успешно.
+                {{ end }}
+            </div>
         {{ end }}
 
         <h1 class="title">Список активных баз</h1>
@@ -60,7 +58,7 @@
                             <td>—</td>
                             <td>—</td>
                             <td>{{ if .Running }}✅{{ else }}❌{{ end }}</td>
-                            <td>date goes here</td>
+                            <td>{{ .Modified }}</td>
                             <td></td>
                         {{ else }}
                             <td>{{ .User }}</td>
@@ -84,7 +82,7 @@
                                     {{ end }}
                                 </form>
                             </td>
-                            <td>???????</td>
+                            <td>{{ .Modified }}</td>
                             <td>
                                 <form action="/api/modify" method="post" onsubmit="return deleteDb()">
                                     <input type="hidden" name="name" value="{{ .Name }}">
@@ -132,11 +130,6 @@ $ dbmate up
                 <li>если это выполнение задачи <code>#12345</code> — так и назовите базу: <code>issue_12345</code></li>
                 <li>если это работа над обращениями — <code>appeals</code></li>
             </ol>
-
-            <p>
-                К остальному подход простой: периодически смотрю список → не понимаю, зачем существует база → удаляю без
-                предупреждения.
-            </p>
         </div>
 
         <form action="/api/create" method="post">

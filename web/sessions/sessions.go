@@ -37,7 +37,7 @@ func (s *Sessions) makeSession(w http.ResponseWriter, r *http.Request) *Session 
 	session := s.sessions[id]
 	if session == nil {
 		session = &Session{
-			vals: make(map[string]interface{}),
+			vals: make(map[string]string),
 		}
 		s.sessions[id] = session
 	}

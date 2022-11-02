@@ -41,10 +41,10 @@ usage: %s install|run
 
 func startServer() error {
 	if err := sanityChecks(); err != nil {
-		log.Fatalf("initialization failed: %v", err)
+		log.Fatalf("init failed: %v", err)
 	}
 	wrk := worker.New()
-	return web.Start(":80", wrk, files)
+	return web.Start(":8080", wrk, files)
 }
 
 func doCommand(name string) (err error) {

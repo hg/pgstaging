@@ -17,7 +17,7 @@ type Cluster struct {
 }
 
 func GetActiveClusters() (result []Cluster) {
-	cmd := exec.Command("ssh", "sc_pg", "pg_lsclusters", "--json")
+	cmd := exec.Command("pg_lsclusters", "--json")
 
 	stdout, err := cmd.Output()
 	if err != nil {
