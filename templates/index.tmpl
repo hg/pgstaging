@@ -21,24 +21,15 @@
             {{ else }}
                 <div class="notification is-primary">
                     {{ if eq .Result "Queued" }}
-                        База данных создана.
-                    {{ else if eq .Result "Stopped" }}
-                        База данных остановлена.
-                    {{ else if eq .Result "Started" }}
-                        База данных запущена.
-                    {{ else if eq .Result "Dropped" }}
-                        База данных удалена.
+                        Задача поставлена в очередь. Обновите страницу через 10-20 секунд.
+                    {{ else if eq .Result "Finished" }}
+                        Задача выполнена успешно.
                     {{ end }}
                 </div>
             {{ end }}
         {{ end }}
 
         <h1 class="title">Список активных баз</h1>
-
-        <div class="block">
-            Не спамим запросами! Скрипты написаны наспех и работают синхронно — браузер может подвисать на минуту. Это
-            ожидаемо.
-        </div>
 
         <div class="table-container">
             <table class="table is-bordered is-striped">
@@ -78,7 +69,7 @@
                                 <code>postgres://{{ .User }}:{{ .Pass }}@10.10.20.228:{{ .Port }}/sc</code>
                             </td>
                             <td>
-                                <form action="/api/lifecycle">
+                                <form action="/api/modify">
                                     <input type="hidden" value="{{ .Name }}">
                                     {{ if .Running }}
                                         <input type="hidden" name="action" value="stop">
@@ -95,8 +86,10 @@
                             </td>
                             <td>???????</td>
                             <td>
-                                <form action="/api/drop" method="post" onsubmit="return deleteDb()">
+                                <form action="/api/modify" method="post" onsubmit="return deleteDb()">
                                     <input type="hidden" name="name" value="{{ .Name }}">
+                                    <input type="hidden" name="action" value="drop">
+
                                     <button class="button is-danger is-small">
                                         Удалить
                                     </button>
