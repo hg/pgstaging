@@ -1,11 +1,10 @@
 package web
 
 import (
-	"github.com/hg/pgstaging/util"
+	"github.com/hg/pgstaging/web/util"
 	"github.com/hg/pgstaging/worker"
 	"fmt"
 	"net/http"
-	"strings"
 )
 
 func serveModify(rc *requestContext) {
@@ -13,9 +12,9 @@ func serveModify(rc *requestContext) {
 		return
 	}
 
-	name := util.NormalizeName(rc.request.FormValue("name"))
+	name := util.NormalizeName(rc.request.PostFormValue("name"))
 
-	if len(name) < len("dev_") || !strings.HasPrefix(name, "dev_") {
+	if !util.IsDevName(name) {
 		rc.setResult("error", fmt.Sprintf("некорректное имя '%s'", name))
 		rc.redirect("/")
 		return
@@ -38,6 +37,7 @@ func serveModify(rc *requestContext) {
 
 	if result != nil {
 		go processResult(rc, result)
+		rc.setResult("queued", "")
 	}
 
 	rc.redirect("/")

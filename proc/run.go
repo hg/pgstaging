@@ -1,13 +1,23 @@
 package proc
 
 import (
+	"github.com/hg/pgstaging/util"
 	"log"
 	"os/exec"
+	"syscall"
 )
 
-func Run(commands ...[]string) error {
+func run(uid, gid uint32, commands [][]string) error {
 	for _, args := range commands {
 		cmd := exec.Command(args[0], args[1:]...)
+
+		cmd.SysProcAttr = &syscall.SysProcAttr{
+			Credential: &syscall.Credential{
+				Uid: uid,
+				Gid: gid,
+			},
+		}
+
 		out, err := cmd.CombinedOutput()
 
 		if err != nil {
@@ -17,4 +27,16 @@ func Run(commands ...[]string) error {
 	}
 
 	return nil
+}
+
+func RunAs(user string, commands ...[]string) error {
+	id, err := util.GetUserId(user)
+	if err != nil {
+		return err
+	}
+	return run(id.UID, id.GID, commands)
+}
+
+func Run(commands ...[]string) error {
+	return run(0, 0, commands)
 }

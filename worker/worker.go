@@ -1,7 +1,7 @@
 package worker
 
 import (
-	"github.com/hg/pgstaging/command"
+	"github.com/hg/pgstaging/worker/command"
 	"fmt"
 	"time"
 )
@@ -43,7 +43,7 @@ func (w *Worker) handle() {
 	for ts := range w.tasks {
 
 		// todo: remove
-		time.Sleep(time.Second)
+		time.Sleep(2 * time.Second)
 
 		switch ts.do {
 		case ActionStart:

@@ -40,7 +40,7 @@
                     <th>URL</th>
                     <th>Запущен</th>
                     <th>
-                        <abbr title="На самом деле это дата последнего изменения конфигов, которая _обычно_ соответствует дате создания.">
+                        <abbr title="Дата последнего изменения конфигов, которая _обычно_ соответствует дате создания.">
                             Создан
                         </abbr>
                     </th>
@@ -53,16 +53,14 @@
                     <tr>
                         <td>{{ .Name }}</td>
                         <td>{{ .Port }}</td>
+                        <td>{{ or .User "—" }}</td>
+                        <td>{{ or .Pass "—" }}</td>
                         {{ if not .Dev }}
-                            <td>—</td>
-                            <td>—</td>
                             <td>—</td>
                             <td>{{ if .Running }}✅{{ else }}❌{{ end }}</td>
                             <td>{{ .Modified }}</td>
                             <td></td>
                         {{ else }}
-                            <td>{{ .User }}</td>
-                            <td>{{ .Pass }}</td>
                             <td>
                                 <code>postgres://{{ .User }}:{{ .Pass }}@10.10.20.228:{{ .Port }}/sc</code>
                             </td>

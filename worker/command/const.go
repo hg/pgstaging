@@ -17,5 +17,9 @@ func pathData(name string) string {
 }
 
 func service(name string) string {
-	return fmt.Sprintf("postgres@15-%s.service", name)
+	return fmt.Sprintf("postgres@%s-%s.service", version, name)
+}
+
+func pathPgHba(name string) string {
+	return fmt.Sprintf("/etc/postgresql/%s/%s/pg_hba.conf", version, name)
 }

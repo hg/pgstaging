@@ -1,7 +1,7 @@
 package web
 
 import (
-	"github.com/hg/pgstaging/util"
+	"github.com/hg/pgstaging/web/util"
 	"github.com/hg/pgstaging/worker"
 	"fmt"
 	"net/http"

@@ -2,10 +2,10 @@ package web
 
 import (
 	"github.com/hg/pgstaging/pg"
+	"github.com/hg/pgstaging/web/util"
 	"log"
 	"net/http"
 	"os"
-	"strings"
 	"time"
 )
 
@@ -36,16 +36,19 @@ func lastModified(name string) time.Time {
 func clustersToViewModels(clusters []pg.Cluster) (result []clusterModel) {
 	for _, cluster := range clusters {
 		mod := lastModified(cluster.ConfigDir)
-
-		result = append(result, clusterModel{
+		dev := util.IsDevName(cluster.Cluster)
+		mdl := clusterModel{
 			Name:     cluster.Cluster,
 			Port:     cluster.Port,
-			User:     "sc",
-			Pass:     "sc",
-			Dev:      strings.HasPrefix(cluster.Cluster, "dev_"),
+			Dev:      dev,
 			Running:  cluster.Running != 0,
 			Modified: mod.Format("02.01.2006 15:04:05"),
-		})
+		}
+		if dev {
+			mdl.User = "sc"
+			mdl.Pass = "sc"
+		}
+		result = append(result, mdl)
 	}
 	return
 }

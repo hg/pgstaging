@@ -11,3 +11,8 @@ func NormalizeName(name string) string {
 	name = strings.ToLower(name)
 	return reNonAlnum.ReplaceAllString(name, "")
 }
+
+func IsDevName(name string) bool {
+	return strings.HasPrefix(name, "dev_") &&
+		len(name) > len("dev_")
+}
