@@ -17,7 +17,7 @@ type clusterModel struct {
 	Pass     string
 	Dev      bool
 	Running  bool
-	Modified time.Time
+	Modified string
 }
 
 type event struct {
@@ -42,12 +42,13 @@ func lastModified(name string) time.Time {
 func clustersToViewModels(clusters []pg.Cluster) (result []clusterModel) {
 	for _, cluster := range clusters {
 		dev := util.IsDevName(cluster.Cluster)
+		mod := lastModified(cluster.ConfigDir)
 		mdl := clusterModel{
 			Name:     cluster.Cluster,
 			Port:     cluster.Port,
 			Dev:      dev,
 			Running:  cluster.Running != 0,
-			Modified: lastModified(cluster.ConfigDir),
+			Modified: mod.Format("02.01.2006 15:04:05"),
 		}
 		if dev {
 			mdl.User = "sc"
