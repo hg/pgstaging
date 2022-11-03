@@ -7,11 +7,12 @@ import (
 	"os"
 )
 
-const appname = "stagingdb"
-const service = appname + ".service"
-
-const svcPath = "/etc/systemd/system/" + service
-const binPath = "/usr/local/bin/" + appname
+const (
+	appname = "pgstaging"
+	service = appname + ".service"
+	svcPath = "/etc/systemd/system/" + service
+	binPath = "/usr/local/bin/" + appname
+)
 
 var content = fmt.Sprintf(`
 [Unit]
@@ -64,7 +65,10 @@ func installBinary() (err error) {
 	if _, err = io.Copy(out, in); err != nil {
 		return
 	}
-	err = out.Sync()
+	if err = out.Sync(); err != nil {
+		return
+	}
+	err = os.Chown(binPath, 0, 0)
 	return
 }
 
