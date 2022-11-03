@@ -6,9 +6,6 @@ import (
 	"sync"
 )
 
-type HttpHandler func(http.ResponseWriter, *http.Request)
-type SessionHandler func(http.ResponseWriter, *http.Request, *Session)
-
 type Sessions struct {
 	m        sync.Mutex
 	sessions map[string]*Session
@@ -33,24 +30,15 @@ func (s *Sessions) makeSession(w http.ResponseWriter, r *http.Request) *Session 
 	id := s.sessionId(w, r)
 
 	s.m.Lock()
+	defer s.m.Unlock()
 
 	session := s.sessions[id]
 	if session == nil {
-		session = &Session{
-			vals: make(map[string]string),
-		}
+		session = &Session{}
 		s.sessions[id] = session
 	}
 
-	s.m.Unlock()
 	return session
-}
-
-func (s *Sessions) Wrap(handler SessionHandler) HttpHandler {
-	return func(w http.ResponseWriter, r *http.Request) {
-		session := s.makeSession(w, r)
-		handler(w, r, session)
-	}
 }
 
 func New() *Sessions {

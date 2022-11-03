@@ -21,7 +21,6 @@ type Event struct {
 
 type Session struct {
 	m      sync.Mutex
-	vals   map[string]string
 	events []Event
 }
 
@@ -39,5 +38,5 @@ func (s *Session) AddEvent(status Status, message string) {
 func (s *Session) Events() []Event {
 	s.m.Lock()
 	defer s.m.Unlock()
-	return s.events
+	return append([]Event{}, s.events...)
 }
