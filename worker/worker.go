@@ -3,7 +3,6 @@ package worker
 import (
 	"github.com/hg/pgstaging/worker/command"
 	"fmt"
-	"time"
 )
 
 type Action int
@@ -41,10 +40,6 @@ func (w *Worker) Enqueue(act Action, name string) <-chan error {
 
 func (w *Worker) handle() {
 	for ts := range w.tasks {
-
-		// todo: remove
-		time.Sleep(2 * time.Second)
-
 		switch ts.do {
 		case ActionStart:
 			ts.done <- command.StartCluster(ts.name)

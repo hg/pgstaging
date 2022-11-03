@@ -5,9 +5,17 @@ import (
 	"time"
 )
 
+type Status string
+
+const (
+	StatusError   = Status("error")
+	StatusSuccess = Status("success")
+	StatusQueued  = Status("queued")
+)
+
 type Event struct {
 	Created time.Time
-	Status  string
+	Status  Status
 	Message string
 }
 
@@ -17,8 +25,13 @@ type Session struct {
 	events []Event
 }
 
-func (s *Session) AddEvent(e Event) {
+func (s *Session) AddEvent(status Status, message string) {
 	s.m.Lock()
+	e := Event{
+		Created: time.Now(),
+		Status:  status,
+		Message: message,
+	}
 	s.events = append([]Event{e}, s.events...)
 	s.m.Unlock()
 }

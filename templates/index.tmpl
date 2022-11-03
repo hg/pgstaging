@@ -143,9 +143,15 @@ $ dbmate up
 
 <aside class="column">
     {{ range .Events }}
-        <div class="notification {{ if .Error }}is-danger{{ else }}is-primary{{ end }} m-1">
+        <div class="notification {{ if eq .Status "error" }}is-danger{{ else if eq .Status "queued" }}is-info{{ else }}is-success{{ end }} m-1">
             <h1 class="is-size-5 has-text-weight-bold">
-                {{ .Status }}
+                {{ if eq .Status "error" }}
+                    Не удалось выполнить задачу
+                {{ else if eq .Status "queued" }}
+                    Задача поставлена в очередь
+                {{ else if eq .Status "success" }}
+                    Задача выполнена успешно
+                {{ end }}
             </h1>
             <h2 class="is-size-6">
                 {{ .When.Format "02.01.2006 15:04:05" }}

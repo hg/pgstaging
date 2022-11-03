@@ -1,6 +1,7 @@
 package web
 
 import (
+	"github.com/hg/pgstaging/web/sessions"
 	"github.com/hg/pgstaging/web/util"
 	"github.com/hg/pgstaging/worker"
 	"fmt"
@@ -16,7 +17,7 @@ func serveCreate(rc *requestContext) {
 	name = util.NormalizeName(name)
 
 	if name == "" || len(name) > 32 {
-		rc.setResult("error", fmt.Sprintf("некорректное имя '%s'", name))
+		rc.setResult(sessions.StatusError, fmt.Sprintf("некорректное имя '%s'", name))
 		rc.redirect("/")
 		return
 	}
@@ -26,6 +27,6 @@ func serveCreate(rc *requestContext) {
 	result := rc.srv.worker.Enqueue(worker.ActionCreate, name)
 	go processResult(rc, result)
 
-	rc.setResult("queued", "")
+	rc.setResult(sessions.StatusQueued, "")
 	rc.redirect("/")
 }

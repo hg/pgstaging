@@ -22,8 +22,7 @@ type clusterModel struct {
 
 type event struct {
 	When    time.Time
-	Error   bool
-	Status  string
+	Status  sessions.Status
 	Message string
 }
 
@@ -59,26 +58,12 @@ func clustersToViewModels(clusters []pg.Cluster) (result []clusterModel) {
 	return
 }
 
-func humanizeStatus(status string) string {
-	switch status {
-	case "queued":
-		return "Задача поставлена в очередь"
-	case "success":
-		return "Задача выполнена успешно"
-	case "error":
-		return "Не удалось выполнить задачу"
-	default:
-		return status
-	}
-}
-
 func eventsToViewModel(events []sessions.Event) []event {
 	var out []event
 	for _, evt := range events {
 		out = append(out, event{
 			When:    evt.Created,
-			Error:   evt.Status == "error",
-			Status:  humanizeStatus(evt.Status),
+			Status:  evt.Status,
 			Message: evt.Message,
 		})
 	}

@@ -1,6 +1,7 @@
 package web
 
 import (
+	"github.com/hg/pgstaging/web/sessions"
 	"github.com/hg/pgstaging/web/util"
 	"github.com/hg/pgstaging/worker"
 	"fmt"
@@ -15,7 +16,7 @@ func serveModify(rc *requestContext) {
 	name := util.NormalizeName(rc.request.PostFormValue("name"))
 
 	if !util.IsDevName(name) {
-		rc.setResult("error", fmt.Sprintf("некорректное имя '%s'", name))
+		rc.setResult(sessions.StatusError, fmt.Sprintf("некорректное имя '%s'", name))
 		rc.redirect("/")
 		return
 	}
@@ -32,12 +33,12 @@ func serveModify(rc *requestContext) {
 	case "drop":
 		result = rc.srv.worker.Enqueue(worker.ActionDrop, name)
 	default:
-		rc.setResult("error", fmt.Sprintf("неизвестное действие '%s'", action))
+		rc.setResult(sessions.StatusError, fmt.Sprintf("неизвестное действие '%s'", action))
 	}
 
 	if result != nil {
 		go processResult(rc, result)
-		rc.setResult("queued", "")
+		rc.setResult(sessions.StatusQueued, "")
 	}
 
 	rc.redirect("/")

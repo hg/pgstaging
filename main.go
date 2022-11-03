@@ -44,7 +44,7 @@ func startServer() error {
 		log.Fatalf("init failed: %v", err)
 	}
 	wrk := worker.New()
-	return web.Start(":8080", wrk, files)
+	return web.Start(":80", wrk, files)
 }
 
 func doCommand(name string) (err error) {
