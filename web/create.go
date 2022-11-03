@@ -12,13 +12,16 @@ func serveCreate(rc *requestContext) {
 		return
 	}
 
-	name := util.NormalizeName(rc.request.PostFormValue("name"))
+	name := rc.request.PostFormValue("name")
+	name = util.NormalizeName(name)
 
 	if name == "" || len(name) > 32 {
 		rc.setResult("error", fmt.Sprintf("некорректное имя '%s'", name))
 		rc.redirect("/")
 		return
 	}
+
+	name = util.AddPrefix(name)
 
 	result := rc.srv.worker.Enqueue(worker.ActionCreate, name)
 	go processResult(rc, result)

@@ -9,6 +9,8 @@ import (
 
 func run(uid, gid uint32, commands [][]string) error {
 	for _, args := range commands {
+		log.Printf("running %v as uid %d", args, uid)
+
 		cmd := exec.Command(args[0], args[1:]...)
 
 		cmd.SysProcAttr = &syscall.SysProcAttr{

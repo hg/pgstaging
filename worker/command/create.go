@@ -24,21 +24,31 @@ func CreateCluster(name string) error {
 
 	err := stepCreateCluster(name)
 	if err == nil {
-		err = stepAllowAuth(name)
+		err = stepRemovePgData(name)
 	}
 	if err == nil {
-		err = stepRemoveFiles(name)
+		err = stepAllowAuth(name)
 	}
 	if err == nil {
 		err = stepCreateSubvolume(name)
 	}
 	if err == nil {
-		err = stepStart(name)
+		err = stepRemoveFiles(name)
+	}
+	if err == nil {
+		err = stepConfigure(name)
+	}
+	if err == nil {
+		err = StartCluster(name)
 	}
 	if err == nil {
 		err = stepSetPasswd(name)
 	}
 	return err
+}
+
+func stepRemovePgData(name string) error {
+	return os.RemoveAll(pathTarget(name))
 }
 
 func stepRemoveFiles(name string) error {
@@ -59,11 +69,10 @@ func stepRemoveFiles(name string) error {
 	return nil
 }
 
-func stepStart(name string) error {
+func stepConfigure(name string) error {
 	return proc.Run(
 		[]string{"pg_conftool", version, name, "set", "listen_addresses", "*"},
 		[]string{"systemctl", "daemon-reload"},
-		[]string{"systemctl", "start", service(name)},
 	)
 }
 

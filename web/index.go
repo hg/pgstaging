@@ -2,6 +2,7 @@ package web
 
 import (
 	"github.com/hg/pgstaging/pg"
+	"github.com/hg/pgstaging/web/sessions"
 	"github.com/hg/pgstaging/web/util"
 	"log"
 	"net/http"
@@ -16,13 +17,19 @@ type clusterModel struct {
 	Pass     string
 	Dev      bool
 	Running  bool
-	Modified string
+	Modified time.Time
+}
+
+type event struct {
+	When    time.Time
+	Error   bool
+	Status  string
+	Message string
 }
 
 type pageModel struct {
-	Status   string
-	Message  string
 	Clusters []clusterModel
+	Events   []event
 }
 
 func lastModified(name string) time.Time {
@@ -35,14 +42,13 @@ func lastModified(name string) time.Time {
 
 func clustersToViewModels(clusters []pg.Cluster) (result []clusterModel) {
 	for _, cluster := range clusters {
-		mod := lastModified(cluster.ConfigDir)
 		dev := util.IsDevName(cluster.Cluster)
 		mdl := clusterModel{
 			Name:     cluster.Cluster,
 			Port:     cluster.Port,
 			Dev:      dev,
 			Running:  cluster.Running != 0,
-			Modified: mod.Format("02.01.2006 15:04:05"),
+			Modified: lastModified(cluster.ConfigDir),
 		}
 		if dev {
 			mdl.User = "sc"
@@ -51,6 +57,32 @@ func clustersToViewModels(clusters []pg.Cluster) (result []clusterModel) {
 		result = append(result, mdl)
 	}
 	return
+}
+
+func humanizeStatus(status string) string {
+	switch status {
+	case "queued":
+		return "Задача поставлена в очередь"
+	case "success":
+		return "Задача выполнена успешно"
+	case "error":
+		return "Не удалось выполнить задачу"
+	default:
+		return status
+	}
+}
+
+func eventsToViewModel(events []sessions.Event) []event {
+	var out []event
+	for _, evt := range events {
+		out = append(out, event{
+			When:    evt.Created,
+			Error:   evt.Status == "error",
+			Status:  humanizeStatus(evt.Status),
+			Message: evt.Message,
+		})
+	}
+	return out
 }
 
 func serveIndex(rc *requestContext) {
@@ -68,8 +100,7 @@ func serveIndex(rc *requestContext) {
 
 	model := pageModel{
 		Clusters: clustersToViewModels(pg.GetActiveClusters()),
-		Status:   rc.session.Get("status"),
-		Message:  rc.session.Get("message"),
+		Events:   eventsToViewModel(rc.session.Events()),
 	}
 
 	rc.writer.Header().Set("Content-Type", "text/html")

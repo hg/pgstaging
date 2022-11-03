@@ -5,7 +5,16 @@ import (
 	"strings"
 )
 
+const prefix = "dev_"
+
 var reNonAlnum = regexp.MustCompile(`[^a-z0-9_]]`)
+
+func AddPrefix(name string) string {
+	if !strings.HasPrefix(name, prefix) {
+		name = prefix + name
+	}
+	return name
+}
 
 func NormalizeName(name string) string {
 	name = strings.ToLower(name)
@@ -13,6 +22,6 @@ func NormalizeName(name string) string {
 }
 
 func IsDevName(name string) bool {
-	return strings.HasPrefix(name, "dev_") &&
-		len(name) > len("dev_")
+	return strings.HasPrefix(name, prefix) &&
+		len(name) > len(prefix)
 }

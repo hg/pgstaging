@@ -2,21 +2,29 @@ package sessions
 
 import (
 	"sync"
+	"time"
 )
 
-type Session struct {
-	m    sync.Mutex
-	vals map[string]string
+type Event struct {
+	Created time.Time
+	Status  string
+	Message string
 }
 
-func (s *Session) Get(key string) string {
+type Session struct {
+	m      sync.Mutex
+	vals   map[string]string
+	events []Event
+}
+
+func (s *Session) AddEvent(e Event) {
+	s.m.Lock()
+	s.events = append([]Event{e}, s.events...)
+	s.m.Unlock()
+}
+
+func (s *Session) Events() []Event {
 	s.m.Lock()
 	defer s.m.Unlock()
-	return s.vals[key]
-}
-
-func (s *Session) Set(key string, value string) {
-	s.m.Lock()
-	s.vals[key] = value
-	s.m.Unlock()
+	return s.events
 }

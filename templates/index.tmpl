@@ -8,155 +8,154 @@
     <title>Тестовые базы данных</title>
     <link rel="stylesheet" href="assets/bulma.min.css">
 </head>
-<body>
+<body class="columns">
 
-<section class="section">
-    <div class="container">
+<main class="column is-three-quarters">
+    <section class="section">
+        <div class="container">
+            <h1 class="title">Список активных баз</h1>
 
-        {{ if eq .Status "error" }}
-            <div class="notification is-danger">
-                Не удалось выполнить действие: {{ .Message }}
-            </div>
-        {{ else if ne .Status "" }}
-            <div class="notification is-primary">
-                {{ if eq .Status "queued" }}
-                    Задача поставлена в очередь. Обновите страницу через 10-20 секунд.
-                {{ else if eq .Status "success" }}
-                    Задача выполнена успешно.
-                {{ end }}
-            </div>
-        {{ end }}
-
-        <h1 class="title">Список активных баз</h1>
-
-        <div class="table-container">
-            <table class="table is-bordered is-striped">
-                <thead>
-                <tr>
-                    <th>Имя</th>
-                    <th>Порт</th>
-                    <th>Юзер</th>
-                    <th>Пароль</th>
-                    <th>URL</th>
-                    <th>Запущен</th>
-                    <th>
-                        <abbr title="Дата последнего изменения конфигов, которая _обычно_ соответствует дате создания.">
-                            Создан
-                        </abbr>
-                    </th>
-                    <th>Действия</th>
-                </tr>
-                </thead>
-
-                <tbody>
-                {{ range .Clusters }}
+            <div class="table-container">
+                <table class="table is-bordered is-striped">
+                    <thead>
                     <tr>
-                        <td>{{ .Name }}</td>
-                        <td>{{ .Port }}</td>
-                        <td>{{ or .User "—" }}</td>
-                        <td>{{ or .Pass "—" }}</td>
-                        {{ if not .Dev }}
-                            <td>—</td>
-                            <td>{{ if .Running }}✅{{ else }}❌{{ end }}</td>
-                            <td>{{ .Modified }}</td>
-                            <td></td>
-                        {{ else }}
-                            <td>
-                                <code>postgres://{{ .User }}:{{ .Pass }}@10.10.20.228:{{ .Port }}/sc</code>
-                            </td>
-                            <td>
-                                <form action="/api/modify">
-                                    <input type="hidden" value="{{ .Name }}">
-                                    {{ if .Running }}
-                                        <input type="hidden" name="action" value="stop">
-                                        <button type="submit" class="button is-warning is-small" onclick="addLoading()">
-                                            Остановить
-                                        </button>
-                                    {{ else }}
-                                        <input type="hidden" name="action" value="start">
-                                        <button type="submit" class="button is-primary is-small" onclick="addLoading()">
-                                            Запустить
-                                        </button>
-                                    {{ end }}
-                                </form>
-                            </td>
-                            <td>{{ .Modified }}</td>
-                            <td>
-                                <form action="/api/modify" method="post" onsubmit="return deleteDb()">
-                                    <input type="hidden" name="name" value="{{ .Name }}">
-                                    <input type="hidden" name="action" value="drop">
-
-                                    <button class="button is-danger is-small">
-                                        Удалить
-                                    </button>
-                                </form>
-                            </td>
-                        {{ end }}
+                        <th>Имя</th>
+                        <th>Порт</th>
+                        <th>Юзер</th>
+                        <th>Пароль</th>
+                        <th>URL</th>
+                        <th>Запущен</th>
+                        <th>
+                            <abbr title="Дата последнего изменения конфигов, которая _обычно_ соответствует дате создания.">
+                                Создан
+                            </abbr>
+                        </th>
+                        <th>Действия</th>
                     </tr>
-                {{ end }}
+                    </thead>
 
-                </tbody>
-            </table>
-        </div>
+                    <tbody>
+                    {{ range .Clusters }}
+                        <tr>
+                            <td>{{ .Name }}</td>
+                            <td>{{ .Port }}</td>
+                            <td>{{ or .User "—" }}</td>
+                            <td>{{ or .Pass "—" }}</td>
+                            {{ if not .Dev }}
+                                <td>—</td>
+                                <td>{{ if .Running }}✅{{ else }}❌{{ end }}</td>
+                                <td>{{ .Modified }}</td>
+                                <td></td>
+                            {{ else }}
+                                <td>
+                                    <code>postgres://{{ .User }}:{{ .Pass }}@10.10.20.228:{{ .Port }}/sc</code>
+                                </td>
+                                <td>
+                                    <form action="/api/modify" method="post">
+                                        <input type="hidden" name="name" value="{{ .Name }}">
+                                        {{ if .Running }}
+                                            <input type="hidden" name="action" value="stop">
+                                            <button type="submit" class="button is-warning is-small"
+                                                    onclick="addLoading()">
+                                                Остановить
+                                            </button>
+                                        {{ else }}
+                                            <input type="hidden" name="action" value="start">
+                                            <button type="submit" class="button is-primary is-small"
+                                                    onclick="addLoading()">
+                                                Запустить
+                                            </button>
+                                        {{ end }}
+                                    </form>
+                                </td>
+                                <td>{{ .Modified.Format "02.01.2006 15:04:05" }}</td>
+                                <td>
+                                    <form action="/api/modify" method="post" onsubmit="return deleteDb()">
+                                        <input type="hidden" name="name" value="{{ .Name }}">
+                                        <input type="hidden" name="action" value="drop">
 
-        <div class="block">
-            Строку из <code>URL</code> можно использовать для прогона миграций:
-        </div>
+                                        <button class="button is-danger is-small">
+                                            Удалить
+                                        </button>
+                                    </form>
+                                </td>
+                            {{ end }}
+                        </tr>
+                    {{ end }}
 
-        <pre>$ export DATABASE_URL=строка_из_таблицы
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="block">
+                Строку из <code>URL</code> можно использовать для прогона миграций:
+            </div>
+
+            <pre>$ export DATABASE_URL=строка_из_таблицы
 $ dbmate status
 $ dbmate up
 </pre>
-    </div>
-
-</section>
-
-<section class="section">
-    <div class="container">
-
-        <h1 class="title">Создать базу</h1>
-
-        <div class="content">
-            <p>
-                Допустимые символы: <code>_</code>, <code>abcdefghijklmnopqrstuvwxyz</code>, <code>0123456789</code>.
-            </p>
-
-            <p>В качестве имени используйте что-то понятное:</p>
-
-            <ol>
-                <li>если это ваша личная песочница — своё имя: <code>divanov</code></li>
-                <li>если это выполнение задачи <code>#12345</code> — так и назовите базу: <code>issue_12345</code></li>
-                <li>если это работа над обращениями — <code>appeals</code></li>
-            </ol>
         </div>
 
-        <form action="/api/create" method="post">
-            <div class="field">
-                <label for="name" class="label">Название</label>
-                <div class="control">
-                    <input id="name" type="text" class="input" minlength="1" maxlength="32" name="name"
-                           placeholder="Короткое название латиницей/цифрами">
-                </div>
+    </section>
+
+    <section class="section">
+        <div class="container">
+
+            <h1 class="title">Создать базу</h1>
+
+            <div class="content">
+                <p>
+                    Допустимые символы: <code>_</code>, <code>abcdefghijklmnopqrstuvwxyz</code>, <code>0123456789</code>.
+                </p>
+
+                <p>В качестве имени используйте что-то понятное:</p>
+
+                <ol>
+                    <li>если это ваша личная песочница — своё имя: <code>divanov</code></li>
+                    <li>если это выполнение задачи <code>#12345</code> — так и назовите базу: <code>issue_12345</code>
+                    </li>
+                    <li>если это работа над обращениями — <code>appeals</code></li>
+                </ol>
             </div>
 
-            <div class="field">
-                <div class="control">
-                    <button id="btn-create" class="button is-primary" onclick="addLoading()">
-                        Создать
-                    </button>
+            <form action="/api/create" method="post">
+                <div class="field">
+                    <label for="name" class="label">Название</label>
+                    <div class="control">
+                        <input id="name" type="text" class="input" minlength="1" maxlength="32" name="name"
+                               placeholder="Короткое название латиницей/цифрами">
+                    </div>
                 </div>
-            </div>
-        </form>
 
-    </div>
-</section>
+                <div class="field">
+                    <div class="control">
+                        <button id="btn-create" class="button is-primary" onclick="addLoading()">
+                            Создать
+                        </button>
+                    </div>
+                </div>
+            </form>
 
-<section class="section">
-    <div class="container">
-        <h1 class="title">Дамп</h1>
-        <p>Скачать дамп для подъёма на своей копии PostgreSQL можно <a href="dump/sc.dump">здесь</a>.</p>
-    </div>
-</section>
+        </div>
+    </section>
+</main>
+
+<aside class="column">
+    {{ range .Events }}
+        <div class="notification {{ if .Error }}is-danger{{ else }}is-primary{{ end }} m-1">
+            <h1 class="is-size-5 has-text-weight-bold">
+                {{ .Status }}
+            </h1>
+            <h2 class="is-size-6">
+                {{ .When.Format "02.01.2006 15:04:05" }}
+            </h2>
+            {{ if ne .Message "" }}
+                <div>{{ .Message }}</div>
+            {{ end }}
+        </div>
+    {{ end }}
+</aside>
 
 <script>
   function addLoading() {

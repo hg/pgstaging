@@ -3,6 +3,7 @@ package web
 import (
 	"github.com/hg/pgstaging/web/sessions"
 	"net/http"
+	"time"
 )
 
 type requestContext struct {
@@ -25,6 +26,9 @@ func (r *requestContext) redirect(url string) {
 }
 
 func (r *requestContext) setResult(status string, message string) {
-	r.session.Set("status", status)
-	r.session.Set("message", message)
+	r.session.AddEvent(sessions.Event{
+		Created: time.Now(),
+		Status:  status,
+		Message: message,
+	})
 }
