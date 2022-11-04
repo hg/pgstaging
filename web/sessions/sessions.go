@@ -6,15 +6,17 @@ import (
 	"sync"
 )
 
+type SessionID string
+
 type Sessions struct {
-	m        sync.Mutex
-	sessions map[string]*Session
+	mu       sync.Mutex
+	sessions map[SessionID]*Session
 }
 
-func (s *Sessions) sessionId(w http.ResponseWriter, r *http.Request) string {
+func (s *Sessions) sessionId(w http.ResponseWriter, r *http.Request) SessionID {
 	cookie, err := r.Cookie("session")
 	if err == nil {
-		return cookie.Value
+		return SessionID(cookie.Value)
 	}
 	cookie = &http.Cookie{
 		Name:     "session",
@@ -23,14 +25,14 @@ func (s *Sessions) sessionId(w http.ResponseWriter, r *http.Request) string {
 		SameSite: http.SameSiteStrictMode,
 	}
 	http.SetCookie(w, cookie)
-	return cookie.Value
+	return SessionID(cookie.Value)
 }
 
 func (s *Sessions) makeSession(w http.ResponseWriter, r *http.Request) *Session {
 	id := s.sessionId(w, r)
 
-	s.m.Lock()
-	defer s.m.Unlock()
+	s.mu.Lock()
+	defer s.mu.Unlock()
 
 	session := s.sessions[id]
 	if session == nil {
@@ -43,7 +45,7 @@ func (s *Sessions) makeSession(w http.ResponseWriter, r *http.Request) *Session 
 
 func New() *Sessions {
 	return &Sessions{
-		sessions: make(map[string]*Session),
+		sessions: make(map[SessionID]*Session),
 	}
 }
 
