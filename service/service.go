@@ -72,16 +72,19 @@ func installBinary() (err error) {
 	return
 }
 
-func Install() (err error) {
-	if err = installBinary(); err == nil {
-		err = installService()
+func Install() error {
+	if err := installBinary(); err != nil {
+		return fmt.Errorf("could not install binary: %v", err)
 	}
-	return
+	if err := installService(); err != nil {
+		return fmt.Errorf("could not install service: %v", err)
+	}
+	return nil
 }
 
 func Enable() error {
 	return proc.Run(
-		[]string{"systemctl", "enable", service},
 		[]string{"systemctl", "daemon-reload"},
+		[]string{"systemctl", "enable", service},
 	)
 }

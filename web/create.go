@@ -18,15 +18,12 @@ func serveCreate(rc *requestContext) {
 
 	if name == "" || len(name) > 32 {
 		rc.setResult(sessions.StatusError, fmt.Sprintf("некорректное имя '%s'", name))
-		rc.redirect("/")
-		return
+	} else {
+		name = util.AddPrefix(name)
+		result := rc.srv.worker.Enqueue(worker.ActionCreate, name)
+		rc.setResult(sessions.StatusQueued, "")
+		go processResult(rc, result)
 	}
 
-	name = util.AddPrefix(name)
-
-	result := rc.srv.worker.Enqueue(worker.ActionCreate, name)
-	go processResult(rc, result)
-
-	rc.setResult(sessions.StatusQueued, "")
 	rc.redirect("/")
 }

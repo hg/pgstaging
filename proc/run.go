@@ -2,6 +2,7 @@ package proc
 
 import (
 	"github.com/hg/pgstaging/util"
+	"fmt"
 	"log"
 	"os/exec"
 	"syscall"
@@ -34,7 +35,7 @@ func run(uid, gid uint32, commands [][]string) error {
 func RunAs(user string, commands ...[]string) error {
 	id, err := util.GetUserId(user)
 	if err != nil {
-		return err
+		return fmt.Errorf("could not get user id: %v", err)
 	}
 	return run(id.UID, id.GID, commands)
 }

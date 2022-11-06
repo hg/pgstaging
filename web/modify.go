@@ -8,6 +8,19 @@ import (
 	"net/http"
 )
 
+func parseAction(name string) (worker.Action, error) {
+	switch name {
+	case "start":
+		return worker.ActionStart, nil
+	case "stop":
+		return worker.ActionStop, nil
+	case "drop":
+		return worker.ActionDrop, nil
+	default:
+		return 0, fmt.Errorf("invalid action %s", name)
+	}
+}
+
 func serveModify(rc *requestContext) {
 	if !rc.requireMethod(http.MethodPost) {
 		return
@@ -21,24 +34,14 @@ func serveModify(rc *requestContext) {
 		return
 	}
 
-	action := rc.request.FormValue("action")
+	action, err := parseAction(rc.request.FormValue("action"))
 
-	var result <-chan error
-
-	switch action {
-	case "start":
-		result = rc.srv.worker.Enqueue(worker.ActionStart, name)
-	case "stop":
-		result = rc.srv.worker.Enqueue(worker.ActionStop, name)
-	case "drop":
-		result = rc.srv.worker.Enqueue(worker.ActionDrop, name)
-	default:
-		rc.setResult(sessions.StatusError, fmt.Sprintf("неизвестное действие '%s'", action))
-	}
-
-	if result != nil {
-		go processResult(rc, result)
+	if err == nil {
+		result := rc.srv.worker.Enqueue(action, name)
 		rc.setResult(sessions.StatusQueued, "")
+		go processResult(rc, result)
+	} else {
+		rc.setResult(sessions.StatusError, err.Error())
 	}
 
 	rc.redirect("/")
