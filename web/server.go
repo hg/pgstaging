@@ -13,7 +13,7 @@ type server struct {
 	tpl      *template.Template
 }
 
-func (srv *server) wrap(handler func(*requestContext)) func(http.ResponseWriter, *http.Request) {
+func (srv *server) wrap(handler func(*requestContext)) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		handler(&requestContext{
 			srv:     srv,

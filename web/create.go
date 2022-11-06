@@ -9,7 +9,7 @@ import (
 )
 
 func serveCreate(rc *requestContext) {
-	if !rc.isMethod(http.MethodPost) {
+	if !rc.requireMethod(http.MethodPost) {
 		return
 	}
 

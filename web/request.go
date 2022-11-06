@@ -12,7 +12,7 @@ type requestContext struct {
 	session *sessions.Session
 }
 
-func (r *requestContext) isMethod(method string) bool {
+func (r *requestContext) requireMethod(method string) bool {
 	if r.request.Method != method {
 		http.Error(r.writer, "unsupported method "+r.request.Method, http.StatusMethodNotAllowed)
 		return false

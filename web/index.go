@@ -72,6 +72,10 @@ func eventsToViewModel(events []sessions.Event) []event {
 }
 
 func serveIndex(rc *requestContext) {
+	if !rc.requireMethod(http.MethodGet) {
+		return
+	}
+
 	switch rc.request.URL.Path {
 	case "/", "/index.html":
 		break
@@ -80,7 +84,7 @@ func serveIndex(rc *requestContext) {
 		return
 	}
 
-	if !rc.isMethod(http.MethodGet) {
+	if !rc.requireMethod(http.MethodGet) {
 		return
 	}
 

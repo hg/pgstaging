@@ -7,7 +7,7 @@ import (
 
 const prefix = "dev_"
 
-var reNonAlnum = regexp.MustCompile(`[^a-z0-9_]]`)
+var reNonAlnum = regexp.MustCompile(`[^a-z0-9_]`)
 
 func AddPrefix(name string) string {
 	if !strings.HasPrefix(name, prefix) {
