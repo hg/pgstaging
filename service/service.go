@@ -1,6 +1,7 @@
 package service
 
 import (
+	"github.com/hg/pgstaging/consts"
 	"github.com/hg/pgstaging/proc"
 	"fmt"
 	"io"
@@ -8,10 +9,9 @@ import (
 )
 
 const (
-	appname = "pgstaging"
-	service = appname + ".service"
+	service = consts.AppName + ".service"
 	svcPath = "/etc/systemd/system/" + service
-	binPath = "/usr/local/bin/" + appname
+	binPath = "/usr/local/bin/" + consts.AppName
 )
 
 var content = fmt.Sprintf(`

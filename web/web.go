@@ -33,5 +33,6 @@ func Start(address string, wrk *worker.Worker, files embed.FS) error {
 	mux.HandleFunc("/api/modify", srv.wrap(serveModify))
 	mux.HandleFunc("/", srv.wrap(serveIndex))
 
+	log.Printf("listening on %s", address)
 	return http.ListenAndServe(address, mux)
 }

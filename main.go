@@ -1,6 +1,7 @@
 package main
 
 import (
+	"github.com/hg/pgstaging/config"
 	"github.com/hg/pgstaging/service"
 	"github.com/hg/pgstaging/web"
 	"github.com/hg/pgstaging/worker"
@@ -43,8 +44,15 @@ func startServer() error {
 	if err := sanityChecks(); err != nil {
 		log.Fatalf("init failed: %v", err)
 	}
+
+	conf, err := config.Load()
+	if err != nil {
+		return fmt.Errorf("error loading config: %v", err)
+	}
+
 	wrk := worker.New()
-	return web.Start(":80", wrk, files)
+
+	return web.Start(conf.Listen, wrk, files)
 }
 
 func doCommand(name string) (err error) {
