@@ -7,11 +7,13 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"regexp"
 	"time"
 )
 
 type clusterModel struct {
 	Name     string
+	Host     string
 	Port     uint16
 	User     string
 	Pass     string
@@ -39,11 +41,12 @@ func lastModified(name string) time.Time {
 	return st.ModTime()
 }
 
-func clustersToViewModels(clusters []pg.Cluster) (result []clusterModel) {
+func clustersToViewModels(host string, clusters []pg.Cluster) (result []clusterModel) {
 	for _, cluster := range clusters {
 		dev := util.IsDevName(cluster.Cluster)
 		mod := lastModified(cluster.ConfigDir)
 		mdl := clusterModel{
+			Host:     host,
 			Name:     cluster.Cluster,
 			Port:     cluster.Port,
 			Dev:      dev,
@@ -71,6 +74,12 @@ func eventsToViewModel(events []sessions.Event) []event {
 	return out
 }
 
+var rePort = regexp.MustCompile(`:\d{1,5}$`)
+
+func getHostname(host string) string {
+	return rePort.ReplaceAllLiteralString(host, "")
+}
+
 func serveIndex(rc *requestContext) {
 	if !rc.requireMethod(http.MethodGet) {
 		return
@@ -84,12 +93,10 @@ func serveIndex(rc *requestContext) {
 		return
 	}
 
-	if !rc.requireMethod(http.MethodGet) {
-		return
-	}
+	host := getHostname(rc.request.Host)
 
 	model := pageModel{
-		Clusters: clustersToViewModels(pg.GetActiveClusters()),
+		Clusters: clustersToViewModels(host, pg.GetActiveClusters()),
 		Events:   eventsToViewModel(rc.session.Events()),
 	}
 

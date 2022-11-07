@@ -48,7 +48,7 @@
                                 <td></td>
                             {{ else }}
                                 <td>
-                                    <code>postgres://{{ .User }}:{{ .Pass }}@10.10.20.228:{{ .Port }}/sc</code>
+                                    <code>postgres://{{ .User }}:{{ .Pass }}@{{ .Host }}:{{ .Port }}/sc</code>
                                 </td>
                                 <td>
                                     <form action="/api/modify" method="post">
