@@ -52,7 +52,7 @@
                                 <td></td>
                             {{ else }}
                                 <td>
-                                    <code>postgres://{{ .User }}:{{ .Pass }}@{{ .Host }}:{{ .Port }}/sc</code>
+                                    <code>postgres://{{ .User }}:{{ or .Pass "XXX" }}@{{ .Host }}:{{ .Port }}/sc</code>
                                 </td>
                                 <td>
                                     <form action="/api/modify" method="post">

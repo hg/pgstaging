@@ -46,21 +46,22 @@ func lastModified(name string) time.Time {
 
 func clustersToViewModels(host string, clusters []pg.Cluster) (result []clusterModel) {
 	for _, cluster := range clusters {
-		dev := util.IsDevName(cluster.Cluster)
 		mod := lastModified(cluster.ConfigDir)
 		pwfile := command.PathPasswd(cluster.Cluster)
 		mdl := clusterModel{
 			Host:     host,
 			Name:     cluster.Cluster,
 			Port:     cluster.Port,
-			Dev:      dev,
+			Dev:      util.IsDevName(cluster.Cluster),
 			Running:  cluster.Running != 0,
 			Modified: mod.Format("02.01.2006 15:04:05"),
 			Secure:   util2.FileExists(pwfile),
 		}
-		if dev {
+		if mdl.Dev {
 			mdl.User = "sc"
-			mdl.Pass = "sc"
+			if !mdl.Secure {
+				mdl.Pass = "sc"
+			}
 		}
 		result = append(result, mdl)
 	}
