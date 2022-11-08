@@ -2,6 +2,7 @@ package config
 
 import (
 	"github.com/hg/pgstaging/consts"
+	"github.com/hg/pgstaging/util"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -12,7 +13,11 @@ import (
 )
 
 type Config struct {
+	// Which address to listen on.
 	Listen string `json:"listen"`
+
+	// Administrator password with access to all databases.
+	Passwd string `json:"passwd"`
 }
 
 func (c *Config) validate() error {
@@ -55,6 +60,11 @@ func Load() (*Config, error) {
 	err = json.Unmarshal(bytes, &conf)
 	if err != nil {
 		return nil, fmt.Errorf("error parsing config: %v", err)
+	}
+
+	if conf.Passwd == "" {
+		conf.Passwd = util.RandomString(18)
+		log.Printf("replacing empty admin password with a one-time random one: '%s'", conf.Passwd)
 	}
 
 	return &conf, conf.validate()

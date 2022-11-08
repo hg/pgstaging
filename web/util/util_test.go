@@ -49,3 +49,23 @@ func TestNormalizeName(t *testing.T) {
 		}
 	}
 }
+
+func TestIsOkPassword(t *testing.T) {
+	for _, tt := range []struct {
+		in   string
+		want bool
+	}{
+		{"", false},
+		{"$!%^@&*#(!", false},
+		{"foo_foo", false},
+		{"Fo4ObAr1337@", false},
+		{"foo_foox", true},
+		{"FOObarBAZ", true},
+		{"foobar42", true},
+		{"Fo4ObA_r1337", true},
+	} {
+		if got := IsOkPassword(tt.in); got != tt.want {
+			t.Errorf("value '%s': want %v, got %v", tt.in, tt.want, got)
+		}
+	}
+}

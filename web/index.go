@@ -2,8 +2,10 @@ package web
 
 import (
 	"github.com/hg/pgstaging/pg"
+	util2 "github.com/hg/pgstaging/util"
 	"github.com/hg/pgstaging/web/sessions"
 	"github.com/hg/pgstaging/web/util"
+	"github.com/hg/pgstaging/worker/command"
 	"log"
 	"net/http"
 	"os"
@@ -19,6 +21,7 @@ type clusterModel struct {
 	Pass     string
 	Dev      bool
 	Running  bool
+	Secure   bool
 	Modified string
 }
 
@@ -45,6 +48,7 @@ func clustersToViewModels(host string, clusters []pg.Cluster) (result []clusterM
 	for _, cluster := range clusters {
 		dev := util.IsDevName(cluster.Cluster)
 		mod := lastModified(cluster.ConfigDir)
+		pwfile := command.PathPasswd(cluster.Cluster)
 		mdl := clusterModel{
 			Host:     host,
 			Name:     cluster.Cluster,
@@ -52,6 +56,7 @@ func clustersToViewModels(host string, clusters []pg.Cluster) (result []clusterM
 			Dev:      dev,
 			Running:  cluster.Running != 0,
 			Modified: mod.Format("02.01.2006 15:04:05"),
+			Secure:   util2.FileExists(pwfile),
 		}
 		if dev {
 			mdl.User = "sc"

@@ -2,8 +2,10 @@ package command
 
 import (
 	"github.com/hg/pgstaging/proc"
+	"github.com/hg/pgstaging/util"
 	"errors"
 	"fmt"
+	"log"
 	"os"
 	"os/exec"
 	"path"
@@ -15,10 +17,10 @@ var (
 	rePort = regexp.MustCompile(`port\s*=\s*(\d+)`)
 )
 
-func CreateCluster(name string) error {
+func CreateCluster(name, pass string) error {
 	target := pathTarget(name)
 
-	if fileExists(target) {
+	if util.FileExists(target) {
 		return fmt.Errorf("path %s already exists", target)
 	}
 
@@ -42,9 +44,18 @@ func CreateCluster(name string) error {
 		err = StartCluster(name)
 	}
 	if err == nil {
-		err = stepSetPasswd(name)
+		err = stepSetPasswd(name, pass)
+	}
+	if err == nil && pass != "" {
+		err = stepStorePasswd(name, pass)
 	}
 	return err
+}
+
+func stepStorePasswd(name string, pass string) error {
+	p := PathPasswd(name)
+	log.Printf("saving password to %s", p)
+	return os.WriteFile(p, []byte(pass), 0o600)
 }
 
 func stepRemovePgData(name string) error {
@@ -76,7 +87,11 @@ func stepConfigure(name string) error {
 	)
 }
 
-func stepSetPasswd(name string) error {
+func stepSetPasswd(name, pass string) error {
+	if pass == "" {
+		pass = "sc"
+	}
+
 	cmd := exec.Command("pg_conftool", version, name, "get", "port")
 	out, err := cmd.Output()
 
@@ -95,10 +110,12 @@ func stepSetPasswd(name string) error {
 		return fmt.Errorf("could not parse port '%s': %v", port, err)
 	}
 
+	sql := fmt.Sprintf("ALTER USER sc PASSWORD '%s'", pass)
+
 	return proc.RunAs("postgres", []string{
 		"psql",
 		"--port", port,
-		"--command", "ALTER USER sc PASSWORD 'sc'",
+		"--command", sql,
 	})
 }
 

@@ -50,7 +50,7 @@ func startServer() error {
 		return fmt.Errorf("error loading config: %v", err)
 	}
 
-	wrk := worker.New()
+	wrk := worker.New(conf)
 
 	return web.Start(conf.Listen, wrk, files)
 }

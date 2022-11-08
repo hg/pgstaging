@@ -1,7 +1,6 @@
 package web
 
 import (
-	"github.com/hg/pgstaging/web/sessions"
 	"github.com/hg/pgstaging/web/util"
 	"github.com/hg/pgstaging/worker"
 	"fmt"
@@ -13,17 +12,21 @@ func serveCreate(rc *requestContext) {
 		return
 	}
 
+	pass := rc.request.PostFormValue("password")
+
+	if pass != "" && !util.IsOkPassword(pass) {
+		rc.bail(fmt.Sprintf("некорректный пароль '%s'", pass))
+		return
+	}
+
 	name := rc.request.PostFormValue("name")
 	name = util.NormalizeName(name)
 
 	if name == "" || len(name) > 32 {
-		rc.setResult(sessions.StatusError, fmt.Sprintf("некорректное имя '%s'", name))
-	} else {
-		name = util.AddPrefix(name)
-		result := rc.srv.worker.Enqueue(worker.ActionCreate, name)
-		rc.setResult(sessions.StatusQueued, "")
-		go processResult(rc, result)
+		rc.bail(fmt.Sprintf("некорректное имя '%s'", name))
+		return
 	}
 
-	rc.redirect("/")
+	name = util.AddPrefix(name)
+	rc.queueTask(worker.ActionCreate, name, pass)
 }

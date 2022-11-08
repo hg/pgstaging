@@ -23,3 +23,7 @@ func service(name string) string {
 func pathPgHba(name string) string {
 	return fmt.Sprintf("/etc/postgresql/%s/%s/pg_hba.conf", version, name)
 }
+
+func PathPasswd(name string) string {
+	return path.Join(pathTarget(name), "passwd")
+}

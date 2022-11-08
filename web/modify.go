@@ -1,7 +1,6 @@
 package web
 
 import (
-	"github.com/hg/pgstaging/web/sessions"
 	"github.com/hg/pgstaging/web/util"
 	"github.com/hg/pgstaging/worker"
 	"fmt"
@@ -29,20 +28,17 @@ func serveModify(rc *requestContext) {
 	name := util.NormalizeName(rc.request.PostFormValue("name"))
 
 	if !util.IsDevName(name) {
-		rc.setResult(sessions.StatusError, fmt.Sprintf("некорректное имя '%s'", name))
-		rc.redirect("/")
+		rc.bail(fmt.Sprintf("некорректное имя '%s'", name))
 		return
 	}
+
+	pass := rc.request.PostFormValue("password")
 
 	action, err := parseAction(rc.request.FormValue("action"))
 
 	if err == nil {
-		result := rc.srv.worker.Enqueue(action, name)
-		rc.setResult(sessions.StatusQueued, "")
-		go processResult(rc, result)
+		rc.queueTask(action, name, pass)
 	} else {
-		rc.setResult(sessions.StatusError, err.Error())
+		rc.bail(err.Error())
 	}
-
-	rc.redirect("/")
 }
