@@ -3,6 +3,7 @@ package main
 import (
 	"github.com/hg/pgstaging/config"
 	"github.com/hg/pgstaging/service"
+	"github.com/hg/pgstaging/util"
 	"github.com/hg/pgstaging/web"
 	"github.com/hg/pgstaging/worker"
 	"embed"
@@ -12,6 +13,7 @@ import (
 	"os"
 	"os/exec"
 	"runtime"
+	"syscall"
 )
 
 //go:embed templates/* assets/*
@@ -50,9 +52,66 @@ func startServer() error {
 		return fmt.Errorf("error loading config: %v", err)
 	}
 
-	wrk := worker.New(conf)
+	wrk, err := startWorker(conf)
+	if err != nil {
+		return err
+	}
+
+	uid, err := util.GetUserId(conf.User)
+	if err != nil {
+		return err
+	}
+	err = syscall.Seteuid(int(uid.UID))
+	if err != nil {
+		return err
+	}
 
 	return web.Start(conf.Listen, wrk, files)
+}
+
+func startWorker(conf *config.Config) (*worker.Client, error) {
+	exe, err := os.Executable()
+	if err != nil {
+		return nil, err
+	}
+
+	cmd := exec.Command(exe, "worker", conf.Passwd)
+
+	inR, inW, err := os.Pipe()
+	if err != nil {
+		return nil, err
+	}
+
+	outR, outW, err := os.Pipe()
+	if err != nil {
+		return nil, err
+	}
+
+	cmd.Stdin = outR
+	cmd.Stdout = inW
+	cmd.Stderr = os.Stderr
+
+	err = cmd.Start()
+	if err != nil {
+		return nil, fmt.Errorf("could not start worker: %v", err)
+	}
+
+	go func() {
+		if err := cmd.Wait(); err != nil {
+			log.Fatalf("worker exited with error: %v", err)
+		}
+	}()
+
+	return worker.NewClient(inR, outW), nil
+}
+
+func runWorker() error {
+	passwd := os.Args[len(os.Args)-1]
+	if passwd == "" {
+		log.Fatalf("admin password not specified (invalid call?)")
+	}
+	srv := worker.NewServer(passwd)
+	return srv.Run()
 }
 
 func doCommand(name string) (err error) {
@@ -64,6 +123,9 @@ func doCommand(name string) (err error) {
 
 	case "run":
 		err = startServer()
+
+	case "worker":
+		err = runWorker()
 
 	default:
 		showUsage()

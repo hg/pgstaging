@@ -8,7 +8,8 @@ import (
 const prefix = "dev_"
 
 var reNonAlnum = regexp.MustCompile(`[^a-z0-9_]`)
-var reAlnum = regexp.MustCompile(`^[a-zA-Z0-9_]{8,}$`)
+var rePasswd = regexp.MustCompile(`^[a-zA-Z0-9_]{8,}$`)
+var reName = regexp.MustCompile(`^dev_[a-z0-9_]+$`)
 
 func AddPrefix(name string) string {
 	if !strings.HasPrefix(name, prefix) {
@@ -18,7 +19,7 @@ func AddPrefix(name string) string {
 }
 
 func IsOkPassword(text string) bool {
-	return reAlnum.MatchString(text)
+	return rePasswd.MatchString(text)
 }
 
 func NormalizeName(name string) string {
@@ -27,6 +28,5 @@ func NormalizeName(name string) string {
 }
 
 func IsDevName(name string) bool {
-	return strings.HasPrefix(name, prefix) &&
-		len(name) > len(prefix)
+	return reName.MatchString(name)
 }

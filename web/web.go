@@ -17,7 +17,7 @@ func loadTemplate(files embed.FS) *template.Template {
 	return tpl
 }
 
-func Start(address string, wrk *worker.Worker, files embed.FS) error {
+func Start(address string, wrk *worker.Client, files embed.FS) error {
 	srv := &server{
 		sessions: sessions.New(),
 		worker:   wrk,

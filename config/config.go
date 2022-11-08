@@ -9,6 +9,7 @@ import (
 	"log"
 	"net/netip"
 	"os"
+	"os/user"
 	"path"
 )
 
@@ -18,11 +19,16 @@ type Config struct {
 
 	// Administrator password with access to all databases.
 	Passwd string `json:"passwd"`
+
+	// Web server drops privileges from root to this user.
+	User string `json:"user"`
 }
 
 func (c *Config) validate() error {
-	_, err := netip.ParseAddrPort(c.Listen)
-	if err != nil {
+	if _, err := netip.ParseAddrPort(c.Listen); err != nil {
+		return err
+	}
+	if _, err := user.Lookup(c.User); err != nil {
 		return err
 	}
 	return nil

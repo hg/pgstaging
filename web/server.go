@@ -9,7 +9,7 @@ import (
 
 type server struct {
 	sessions *sessions.Sessions
-	worker   *worker.Worker
+	worker   *worker.Client
 	tpl      *template.Template
 }
 
