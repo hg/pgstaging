@@ -1,11 +1,12 @@
 <!doctype html>
-<html lang="ru">
+<html lang="{{ .Locale.Code }}">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport"
           content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
-    <title>Тестовые базы данных</title>
+    {{ $loc := .Locale }}
+    <title>{{ $loc.Tr "project name" }}</title>
     <link rel="stylesheet" href="assets/bulma.min.css">
 </head>
 <body class="columns">
@@ -13,24 +14,24 @@
 <main class="column is-three-quarters">
     <section class="section">
         <div class="container">
-            <h1 class="title">Список активных баз</h1>
+            <h1 class="title">{{ $loc.Tr "active database list" }}</h1>
 
             <div class="table-container">
                 <table class="table is-bordered is-striped">
                     <thead>
                     <tr>
-                        <th>Имя</th>
-                        <th>Порт</th>
-                        <th>Юзер</th>
-                        <th>Пароль</th>
-                        <th>URL</th>
-                        <th>Запущен</th>
+                        <th>{{ $loc.Tr "cluster name" }}</th>
+                        <th>{{ $loc.Tr "cluster port" }}</th>
+                        <th>{{ $loc.Tr "cluster user" }}</th>
+                        <th>{{ $loc.Tr "cluster pass" }}</th>
+                        <th>{{ $loc.Tr "cluster url" }}</th>
+                        <th>{{ $loc.Tr "cluster started" }}</th>
                         <th>
-                            <abbr title="Дата последнего изменения конфигов, которая _обычно_ соответствует дате создания.">
-                                Создан
+                            <abbr title="{{ $loc.Tr "cluster creation time" }}">
+                                {{ $loc.Tr "cluster created" }}
                             </abbr>
                         </th>
-                        <th>Действия</th>
+                        <th>{{ $loc.Tr "cluster actions" }}</th>
                     </tr>
                     </thead>
 
@@ -41,7 +42,7 @@
                             <td>{{ .Port }}</td>
                             <td>{{ or .User "—" }}</td>
                             {{ if .Secure }}
-                                <td title="Создатель назначил свой пароль">🔒</td>
+                                <td title="{{ $loc.Tr "custom password specified" }}">🔒</td>
                             {{ else }}
                                 <td>{{ or .Pass "—" }}</td>
                             {{ end }}
@@ -65,14 +66,14 @@
                                             <button type="submit" class="button is-warning is-small"
                                                     {{ if .Secure }}data-secured="" disabled{{ end }}
                                                     onclick="addLoading()">
-                                                Остановить
+                                                {{ $loc.Tr "stop cluster" }}
                                             </button>
                                         {{ else }}
                                             <input type="hidden" name="action" value="start">
                                             <button type="submit" class="button is-primary is-small"
                                                     {{ if .Secure }}data-secured="" disabled{{ end }}
                                                     onclick="addLoading()">
-                                                Запустить
+                                                {{ $loc.Tr "start cluster" }}
                                             </button>
                                         {{ end }}
                                     </form>
@@ -88,7 +89,7 @@
 
                                         <button class="button is-danger is-small"
                                                 {{ if .Secure }}data-secured="" disabled{{ end }}>
-                                            Удалить
+                                            {{ $loc.Tr "drop cluster" }}
                                         </button>
                                     </form>
                                 </td>
@@ -103,21 +104,21 @@
             <div class="block">
                 <div class="field">
                     <label for="common-password" class="label">
-                        Пароль для остановки/запуска/удаления защищённых баз
+                        {{ $loc.Tr "auth field label" }}
                     </label>
                     <div class="control">
                         <input id="common-password" type="password" class="input" name="common-password"
-                               placeholder="Укажите здесь пароль для нужной базы, и затем нажмите кнопку Удалить, Остановить, или Запустить"
+                               placeholder="{{ $loc.Tr "auth field help" }}"
                                oninput="setPasswords()">
                     </div>
                 </div>
             </div>
 
             <div class="block">
-                Строку из <code>URL</code> можно использовать для прогона миграций:
+                {{ $loc.Tr "url field help" }}
             </div>
 
-            <pre>$ export DATABASE_URL=строка_из_таблицы
+            <pre>$ export DATABASE_URL=postgresql://foo:bar@…
 $ dbmate status
 $ dbmate up
 </pre>
@@ -128,51 +129,41 @@ $ dbmate up
     <section class="section">
         <div class="container">
 
-            <h1 class="title">Создать базу</h1>
-
-            <div class="content">
-                <p>
-                    Допустимые символы: <code>_</code>, <code>abcdefghijklmnopqrstuvwxyz</code>, <code>0123456789</code>.
-                </p>
-
-                <p>В качестве имени используйте что-то понятное:</p>
-
-                <ol>
-                    <li>если это ваша личная песочница — своё имя: <code>divanov</code></li>
-                    <li>если это выполнение задачи <code>#12345</code> — так и назовите базу: <code>issue_12345</code>
-                    </li>
-                    <li>если это работа над обращениями — <code>appeals</code></li>
-                </ol>
-
-                <p>Пароль можно не указывать — тогда доступ к базе и возможность остановить/удалить её будет иметь любой
-                    желающий.</p>
-            </div>
+            <h1 class="title">{{ $loc.Tr "create cluster" }}</h1>
 
             <form action="/api/create" method="post">
                 <div class="field">
                     <label for="name" class="label">
-                        Название копии PostgreSQL
+                        {{ $loc.Tr "name field label" }}
                     </label>
                     <div class="control">
                         <input id="name" type="text" class="input" minlength="1" maxlength="32" name="name"
-                               required placeholder="Короткое название латиницей/цифрами">
+                               required placeholder="{{ $loc.Tr "name field description" }}">
                     </div>
+                </div>
+
+                <div class="content">
+                    {{ $loc.Tr "id permitted symbols" }}: <code>_</code>, <code>abcdefghijklmnopqrstuvwxyz</code>, <code>0123456789</code>.
                 </div>
 
                 <div class="field">
                     <label for="password" class="label">
-                        Пароль от юзера <code>sc</code> и для остановки/удаления базы
+                        {{ $loc.Tr "password field label" }}
                     </label>
                     <div class="control">
                         <input id="password" type="password" class="input" name="password"
-                               minlength="8" placeholder="Необязательный пароль для защиты базы (не менее 8 символов)">
+                               minlength="8" placeholder="{{ $loc.Tr "password field description" }}">
                     </div>
+                </div>
+
+                <div class="content">
+                    {{ $loc.Tr "password field help" }}
                 </div>
 
                 <div class="field">
                     <div class="control">
                         <button id="btn-create" class="button is-primary">
-                            Создать
+                            {{ $loc.Tr "create cluster" }}
                         </button>
                     </div>
                 </div>
@@ -187,11 +178,11 @@ $ dbmate up
         <div class="notification {{ if eq .Status "error" }}is-danger{{ else if eq .Status "queued" }}is-info{{ else }}is-success{{ end }} m-1">
             <h1 class="is-size-5 has-text-weight-bold">
                 {{ if eq .Status "error" }}
-                    Не удалось выполнить задачу
+                    {{ $loc.Tr "task status error" }}
                 {{ else if eq .Status "queued" }}
-                    Задача поставлена в очередь
+                    {{ $loc.Tr "task status queued" }}
                 {{ else if eq .Status "success" }}
-                    Задача выполнена успешно
+                    {{ $loc.Tr "task status success" }}
                 {{ end }}
             </h1>
             <h2 class="is-size-6">
@@ -210,7 +201,7 @@ $ dbmate up
   }
 
   function deleteDb() {
-    return confirm("Вы точно хотите удалить базу?");
+    return confirm("{{ $loc.Tr "confirm cluster drop" }}");
   }
 
   const secured = document.querySelectorAll(`[data-secured]`);

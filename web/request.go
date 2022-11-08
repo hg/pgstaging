@@ -1,6 +1,7 @@
 package web
 
 import (
+	"github.com/hg/pgstaging/web/l10n"
 	"github.com/hg/pgstaging/web/sessions"
 	"github.com/hg/pgstaging/worker"
 	"net/http"
@@ -11,6 +12,7 @@ type requestContext struct {
 	writer  http.ResponseWriter
 	request *http.Request
 	session *sessions.Session
+	locale  *l10n.Locale
 }
 
 func (r *requestContext) requireMethod(method string) bool {

@@ -3,6 +3,7 @@ package web
 import (
 	"github.com/hg/pgstaging/pg"
 	util2 "github.com/hg/pgstaging/util"
+	"github.com/hg/pgstaging/web/l10n"
 	"github.com/hg/pgstaging/web/sessions"
 	"github.com/hg/pgstaging/web/util"
 	"github.com/hg/pgstaging/worker/command"
@@ -34,6 +35,7 @@ type event struct {
 type pageModel struct {
 	Clusters []clusterModel
 	Events   []event
+	Locale   *l10n.Locale
 }
 
 func lastModified(name string) time.Time {
@@ -104,6 +106,7 @@ func serveIndex(rc *requestContext) {
 	model := pageModel{
 		Clusters: clustersToViewModels(host, pg.GetActiveClusters()),
 		Events:   eventsToViewModel(rc.session.Events()),
+		Locale:   rc.locale,
 	}
 
 	rc.writer.Header().Set("Content-Type", "text/html")
