@@ -15,7 +15,7 @@ func serveCreate(rc *requestContext) {
 	pass := rc.request.PostFormValue("password")
 
 	if pass != "" && !util.IsOkPassword(pass) {
-		rc.bail(fmt.Sprintf("некорректный пароль '%s'", pass))
+		rc.bail(fmt.Sprintf("invalid password '%s'", pass))
 		return
 	}
 
@@ -23,7 +23,7 @@ func serveCreate(rc *requestContext) {
 	name = util.NormalizeName(name)
 
 	if name == "" || len(name) > 32 {
-		rc.bail(fmt.Sprintf("некорректное имя '%s'", name))
+		rc.bail(fmt.Sprintf("invalid name '%s'", name))
 		return
 	}
 
