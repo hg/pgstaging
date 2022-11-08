@@ -56,7 +56,9 @@ func Load() (*Config, error) {
 	if err != nil {
 		if errors.Is(err, os.ErrNotExist) {
 			log.Print("config does not exist, using default")
-			return defaultConfig(), nil
+			conf := defaultConfig()
+			trySaveConfig(cp, conf)
+			return conf, nil
 		}
 		return nil, fmt.Errorf("error reading config: %v", err)
 	}
@@ -74,4 +76,21 @@ func Load() (*Config, error) {
 	}
 
 	return &conf, conf.validate()
+}
+
+func trySaveConfig(p string, conf *Config) {
+	err := os.MkdirAll(path.Base(p), 0o755)
+	if err != nil {
+		log.Printf("could not create config dir: %v", err)
+		return
+	}
+	b, err := json.Marshal(conf)
+	if err != nil {
+		log.Printf("could not marshal config: %v", err)
+		return
+	}
+	err = os.WriteFile(p, b, 0o600)
+	if err != nil {
+		log.Printf("could not write config: %v", err)
+	}
 }
