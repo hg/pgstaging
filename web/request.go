@@ -4,6 +4,7 @@ import (
 	"github.com/hg/pgstaging/web/l10n"
 	"github.com/hg/pgstaging/web/sessions"
 	"github.com/hg/pgstaging/worker"
+	"github.com/hg/pgstaging/worker/command"
 	"net/http"
 )
 
@@ -36,17 +37,16 @@ func (r *requestContext) bail(message string) {
 	r.redirect("/")
 }
 
-func processResult(req *requestContext, result <-chan error) {
-	if err := <-result; err == nil {
-		req.addResult(sessions.StatusSuccess, "")
+func (r *requestContext) processResult(result <-chan command.Result) {
+	if re := <-result; re.Err == nil {
+		r.addResult(sessions.StatusSuccess, "")
 	} else {
-		req.addResult(sessions.StatusError, err.Error())
+		r.addResult(sessions.StatusError, re.Err.Error())
 	}
 }
 
-func (r *requestContext) queueTask(action worker.Action, name, pass string) {
+func (r *requestContext) queueTask(action worker.Action, name, pass string) <-chan command.Result {
 	result := r.srv.worker.Enqueue(action, name, pass)
 	r.addResult(sessions.StatusQueued, "")
-	r.redirect("/")
-	go processResult(r, result)
+	return result
 }

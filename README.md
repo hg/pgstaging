@@ -53,3 +53,10 @@ It will copy itself to `/usr/local/bin` and create a systemd service to manage
 the daemon (but won't start right away unless you do it manually).
 
 Open your server's IP or domain in a web browser.
+
+## API
+
+```shell
+curl --form pr=422 'http://1.2.3.4/api/create/pr'
+# 5436
+```

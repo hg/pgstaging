@@ -2,10 +2,10 @@ package worker
 
 import (
 	"bufio"
-	"github.com/hg/pgstaging/web/util"
-	"github.com/hg/pgstaging/worker/command"
 	"encoding/json"
 	"fmt"
+	"github.com/hg/pgstaging/web/util"
+	"github.com/hg/pgstaging/worker/command"
 	"log"
 	"os"
 )
@@ -24,18 +24,18 @@ func NewServer(pass string) *Server {
 
 func (srv *Server) Run() error {
 	for {
-		pay, err := srv.recvCommand()
+		pay := srv.recvCommand()
 		log.Printf("received command %v", pay)
 
-		if err = srv.processTask(pay); err == nil {
-			srv.sendResult(result{pay.Id, ""})
+		if re := srv.processTask(pay); re.Err == nil {
+			srv.sendResult(result{pay.Id, "", re.Data})
 		} else {
-			srv.sendResult(result{pay.Id, err.Error()})
+			srv.sendResult(result{pay.Id, re.Err.Error(), nil})
 		}
 	}
 }
 
-func (srv *Server) recvCommand() (*payload, error) {
+func (srv *Server) recvCommand() *payload {
 	line, err := srv.read.ReadBytes('\n')
 	if err != nil {
 		log.Fatalf("error reading command: %v", err)
@@ -56,7 +56,7 @@ func (srv *Server) recvCommand() (*payload, error) {
 		log.Fatalf("bad password received")
 	}
 
-	return &pay, err
+	return &pay
 }
 
 func (srv *Server) sendResult(res result) {
@@ -74,33 +74,36 @@ func (srv *Server) sendResult(res result) {
 	}
 }
 
-func (srv *Server) processTask(ts *payload) error {
+func (srv *Server) processTask(ts *payload) command.Result {
 	log.Printf("starting task [%d] on %s", ts.Do, ts.Name)
 
 	switch ts.Do {
 	case ActionCreate:
-		return command.CreateCluster(ts.Name, ts.Pass)
+		return command.CreateCluster(ts.Name, ts.Pass, false)
+
+	case ActionForceCreate:
+		return command.CreateCluster(ts.Name, ts.Pass, true)
 
 	case ActionStart, ActionStop, ActionDrop:
 		return handleModification(ts, srv.pass)
 
 	default:
-		return fmt.Errorf("invalid action %v", ts.Do)
+		return command.Result{Err: fmt.Errorf("invalid action %v", ts.Do)}
 	}
 }
 
-func handleModification(ts *payload, admin string) error {
+func handleModification(ts *payload, admin string) command.Result {
 	if !validPassword(ts.Name, ts.Pass, admin) {
-		return fmt.Errorf("invalid password")
+		return command.Result{Err: fmt.Errorf("invalid password")}
 	}
 
 	switch ts.Do {
 	case ActionStart:
-		return command.StartCluster(ts.Name)
+		return command.Result{Err: command.StartCluster(ts.Name)}
 	case ActionStop:
-		return command.StopCluster(ts.Name)
+		return command.Result{Err: command.StopCluster(ts.Name)}
 	case ActionDrop:
-		return command.DropCluster(ts.Name)
+		return command.Result{Err: command.DropCluster(ts.Name)}
 	default:
 		panic(fmt.Sprintf("bad action %v", ts.Do))
 	}

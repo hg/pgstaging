@@ -1,9 +1,9 @@
 package web
 
 import (
+	"fmt"
 	"github.com/hg/pgstaging/web/util"
 	"github.com/hg/pgstaging/worker"
-	"fmt"
 	"net/http"
 )
 
@@ -37,7 +37,9 @@ func serveModify(rc *requestContext) {
 	action, err := parseAction(rc.request.FormValue("action"))
 
 	if err == nil {
-		rc.queueTask(action, name, pass)
+		result := rc.queueTask(action, name, pass)
+		rc.redirect("/")
+		go rc.processResult(result)
 	} else {
 		rc.bail(err.Error())
 	}

@@ -1,9 +1,9 @@
 package web
 
 import (
+	"embed"
 	"github.com/hg/pgstaging/web/sessions"
 	"github.com/hg/pgstaging/worker"
-	"embed"
 	"html/template"
 	"log"
 	"net/http"
@@ -30,6 +30,7 @@ func Start(address string, wrk *worker.Client, files embed.FS) error {
 	mux.Handle("/assets/", http.FileServer(http.FS(files)))
 
 	mux.HandleFunc("/api/create", srv.wrap(serveCreate))
+	mux.HandleFunc("/api/create/pr", srv.wrap(serveCreatePullRequest))
 	mux.HandleFunc("/api/modify", srv.wrap(serveModify))
 	mux.HandleFunc("/", srv.wrap(serveIndex))
 

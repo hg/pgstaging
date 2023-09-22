@@ -1,10 +1,10 @@
 package command
 
 import (
-	"github.com/hg/pgstaging/proc"
-	"github.com/hg/pgstaging/util"
 	"errors"
 	"fmt"
+	"github.com/hg/pgstaging/proc"
+	"github.com/hg/pgstaging/util"
 	"log"
 	"os"
 	"os/exec"
@@ -17,11 +17,16 @@ var (
 	rePort = regexp.MustCompile(`port\s*=\s*(\d+)`)
 )
 
-func CreateCluster(name, pass string) error {
+func CreateCluster(name, pass string, force bool) Result {
 	target := pathTarget(name)
 
 	if util.FileExists(target) {
-		return fmt.Errorf("path %s already exists", target)
+		if !force {
+			return Result{Err: fmt.Errorf("path %s already exists", target)}
+		}
+		if err := DropCluster(name); err != nil {
+			return Result{Err: fmt.Errorf("could not drop cluster")}
+		}
 	}
 
 	err := stepCreateCluster(name)
@@ -43,13 +48,20 @@ func CreateCluster(name, pass string) error {
 	if err == nil {
 		err = StartCluster(name)
 	}
+	var port uint16
 	if err == nil {
-		err = stepSetPasswd(name, pass)
+		port, err = stepGetPort(name)
+	}
+	if err == nil {
+		err = stepSetPasswd(pass, port)
 	}
 	if err == nil && pass != "" {
 		err = stepStorePasswd(name, pass)
 	}
-	return err
+	if err == nil {
+		return Result{Data: port}
+	}
+	return Result{Err: err}
 }
 
 func stepStorePasswd(name string, pass string) error {
@@ -87,34 +99,38 @@ func stepConfigure(name string) error {
 	)
 }
 
-func stepSetPasswd(name, pass string) error {
-	if pass == "" {
-		pass = "sc"
-	}
-
+func stepGetPort(name string) (uint16, error) {
 	cmd := exec.Command("pg_conftool", version, name, "get", "port")
 	out, err := cmd.Output()
 
 	if err != nil {
-		return fmt.Errorf("could not get port: %v", err)
+		return 0, fmt.Errorf("could not get port: %v", err)
 	}
 
 	m := rePort.FindSubmatch(out)
 	if m == nil {
-		return errors.New("port not found")
+		return 0, errors.New("port not found")
 	}
-	port := string(m[1])
+	raw := string(m[1])
 
-	_, err = strconv.ParseUint(port, 10, 16)
+	port, err := strconv.ParseUint(raw, 10, 16)
 	if err != nil {
-		return fmt.Errorf("could not parse port '%s': %v", port, err)
+		return 0, fmt.Errorf("could not parse port '%s': %v", raw, err)
+	}
+
+	return uint16(port), nil
+}
+
+func stepSetPasswd(pass string, port uint16) error {
+	if pass == "" {
+		pass = "sc"
 	}
 
 	sql := fmt.Sprintf("ALTER USER sc PASSWORD '%s'", pass)
 
 	return proc.RunAs("postgres", []string{
 		"psql",
-		"--port", port,
+		"--port", strconv.Itoa(int(port)),
 		"--command", sql,
 	})
 }

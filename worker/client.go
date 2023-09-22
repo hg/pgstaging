@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"encoding/json"
 	"errors"
+	"github.com/hg/pgstaging/worker/command"
 	"io"
 	"log"
 	"sync/atomic"
@@ -13,7 +14,7 @@ var taskId = atomic.Int32{}
 
 type Client struct {
 	tasks chan *task
-	dones chan chan<- error
+	dones chan chan<- command.Result
 	in    io.Reader
 	out   io.Writer
 }
@@ -21,7 +22,7 @@ type Client struct {
 func NewClient(in io.Reader, out io.Writer) *Client {
 	wrk := &Client{
 		tasks: make(chan *task, 100),
-		dones: make(chan chan<- error, 100),
+		dones: make(chan chan<- command.Result, 100),
 		in:    in,
 		out:   out,
 	}
@@ -66,15 +67,15 @@ func (w *Client) receiveResults() {
 		done := <-w.dones
 
 		if res.Error == "" {
-			done <- nil
+			done <- command.Result{Data: res.Data}
 		} else {
-			done <- errors.New(res.Error)
+			done <- command.Result{Err: errors.New(res.Error)}
 		}
 	}
 }
 
-func (w *Client) Enqueue(act Action, name, pass string) <-chan error {
-	done := make(chan error, 1)
+func (w *Client) Enqueue(act Action, name, pass string) <-chan command.Result {
+	done := make(chan command.Result, 1)
 	w.tasks <- &task{
 		pay: payload{
 			Id:   taskId.Add(1),

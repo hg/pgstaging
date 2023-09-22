@@ -5,7 +5,7 @@ import (
 	"path"
 )
 
-const version = "15"
+const version = "16"
 const mnt = "/opt/dev/mnt"
 
 func pathTarget(name string) string {
